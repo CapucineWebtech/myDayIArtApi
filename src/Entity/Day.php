@@ -37,6 +37,9 @@ class Day
     public function __construct()
     {
         $this->themes = new ArrayCollection();
+        $this->nbView = 0;
+        $this->nbFinish = 0;
+        $this->nbPostInstagram = 0;
     }
 
     public function getId(): ?int

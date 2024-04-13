@@ -31,6 +31,7 @@ class Theme
     public function __construct()
     {
         $this->users = new ArrayCollection();
+        $this->nbVote = 0;
     }
 
     public function getId(): ?int
