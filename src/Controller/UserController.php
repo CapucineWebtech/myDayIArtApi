@@ -4,12 +4,13 @@ namespace App\Controller;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use App\Entity\User;
-use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use Symfony\Component\HttpFoundation\Response;
 
 class UserController extends AbstractController
@@ -51,4 +52,40 @@ class UserController extends AbstractController
             'registerDate' => $user->getRegisterDate()->format('Y-m-d H:i:s'),
         ]);
     }
+
+    #[Route('/login', name: 'app_login', methods: ['POST'])]
+    public function apiLoginCheck()
+    {
+        throw new \Exception('Should not be reached');
+    }
+
+    #[Route('/user/delete', name: 'app_delete_user', methods: ['DELETE'])]
+    public function deleteUser(Request $request, EntityManagerInterface $entityManager, Security $security): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        $userId = $data['id'] ?? null;
+
+        if (!$userId) {
+            return new JsonResponse(['error' => 'User ID is required'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $userToDelete = $entityManager->getRepository(User::class)->find($userId);
+
+        if (!$userToDelete) {
+            return new JsonResponse(['error' => 'User not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        $currentUser = $security->getUser();
+
+        if (in_array('ROLE_ADMIN', $currentUser->getRoles()) || $currentUser === $userToDelete) {
+            $entityManager->remove($userToDelete);
+            $entityManager->flush();
+
+            return new JsonResponse(['success' => 'User deleted successfully']);
+        } else {
+            throw new UnauthorizedHttpException('You are not authorized to delete this user.');
+        }
+    }
+
+
 }
