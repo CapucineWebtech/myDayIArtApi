@@ -18,6 +18,7 @@ class DayController extends AbstractController
 
     private function getDayOrError(EntityManagerInterface $entityManager): Day|JsonResponse
     {
+        // Check if a day exists for today
         $today = new \DateTime('now', new \DateTimeZone('UTC'));
         $dayRepository = $entityManager->getRepository(Day::class);
         $day = $dayRepository->findOneBy(['dayDate' => $today]);
@@ -32,31 +33,31 @@ class DayController extends AbstractController
     #[Route('/today', name: 'app_today')]
     public function today(EntityManagerInterface $entityManager): JsonResponse
     {
+        // Retrieve the day for today
         $day = $this->getDayOrError($entityManager);
         if ($day instanceof JsonResponse) {
             return $day;
         }
 
+        // Check if an image exists for this day
         if ($day->getImageUrl() == null) {
+            // Retrieve the most voted theme for today
             $themeRepository = $entityManager->getRepository(Theme::class);
             $themes = $themeRepository->findBy(['day' => $day], ['nbVote' => 'DESC']);
-
             if (empty($themes)) {
                 return new JsonResponse([
                     'error' => 'No theme for today : ' . $day->getDayDate()->format('d/m/Y'),
                 ], 404);
             }
-
             $maxVotes = $themes[0]->getNbVote();
             $topThemes = array_filter($themes, function ($theme) use ($maxVotes) {
                 return $theme->getNbVote() === $maxVotes;
             });
             $selectedTheme = $topThemes[array_rand($topThemes)];
 
-            // Générer une image avec OpenAI DALL-E
+            // Create an image with the chosen theme
             $myApiKey = $_ENV['OPENAI_API_KEY'];
             $client = OpenAI::client($myApiKey);
-
             $response = $client->images()->create([
                 'model' => 'dall-e-3',
                 'prompt' => $selectedTheme->getTitle(),
@@ -65,6 +66,7 @@ class DayController extends AbstractController
                 'response_format' => 'url',
             ]);
 
+            // Save the image locally
             $imageContent = file_get_contents($response->data[0]->url);
             $imageDirectoryName = __DIR__ . '/../../public/images';
             if (!is_dir($imageDirectoryName)) {
@@ -73,15 +75,17 @@ class DayController extends AbstractController
             $imageFileName = $imageDirectoryName . '/image_' . $day->getDayDate()->format('d-m-Y') . '.png';
             file_put_contents($imageFileName, $imageContent);
 
+            // Update the day with the image URL
             $day->setImageUrl('/images/image_' . $day->getDayDate()->format('d-m-Y') . '.png');
-
         }
+
+        // Update the view count of the day's image
         $day->setNbView($day->getNbView() + 1);
         $entityManager->persist($day);
         $entityManager->flush();
+
+        // Return the URL of the day's image
         return new JsonResponse([
-            'id' => $day->getId(),
-            'day_date' => $day->getDayDate()->format('Y-m-d'),
             'image_url' => $day->getImageUrl(),
         ]);
     }
@@ -89,34 +93,38 @@ class DayController extends AbstractController
     #[Route('/finished', name: 'app_finished')]
     public function finished(EntityManagerInterface $entityManager): JsonResponse
     {
+        // Retrieve the day for today
         $day = $this->getDayOrError($entityManager);
         if ($day instanceof JsonResponse) {
             return $day;
         }
 
+        // Update the finish count of the day's image
         $day->setNbFinish($day->getNbFinish() + 1);
         $entityManager->persist($day);
         $entityManager->flush();
 
         return $this->json([
-            'nbFinish' => $day->getNbFinish(),
+            'success' => 'Finish added successfully',
         ]);
     }
 
     #[Route('/instagram', name: 'app_instagram')]
     public function instagram(EntityManagerInterface $entityManager): JsonResponse
     {
+        // Retrieve the day for today
         $day = $this->getDayOrError($entityManager);
         if ($day instanceof JsonResponse) {
             return $day;
         }
 
+        // Update the Instagram post count of the day's image
         $day->setNbPostInstagram($day->getNbPostInstagram() + 1);
         $entityManager->persist($day);
         $entityManager->flush();
 
         return $this->json([
-            'nbPostInstagram' => $day->getNbPostInstagram(),
+            'success' => 'Instagram post added successfully',
         ]);
     }
 
@@ -124,21 +132,24 @@ class DayController extends AbstractController
     #[IsGranted('ROLE_ADMIN', message: 'Only admin can access this endpoint')]
     public function addDays(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
+        // Check if themes have been provided
         $data = json_decode($request->getContent(), true);
         $themesData = $data['themes'] ?? [];
-
         if (empty($themesData)) {
             throw new HttpException(400, 'No themes provided');
         }
 
+        // Count usable themes
         $countThemes = count($themesData);
         $validCount = intdiv($countThemes, 3) * 3;
         $themesData = array_slice($themesData, 0, $validCount);
 
+        // Retrieve the last recorded day
         $dayRepository = $entityManager->getRepository(Day::class);
         $lastDay = $dayRepository->findOneBy([], ['dayDate' => 'DESC']);
-        $startDay = $lastDay ? $lastDay->getDayDate() : new \DateTime();
+        $startDay = $lastDay ? $lastDay->getDayDate() : new \DateTime('today', new \DateTimeZone('UTC'));
 
+        // Add days with provided themes
         for ($i = 0; $i < $validCount; $i += 3) {
             $day = new Day();
             $day->setDayDate((clone $startDay)->modify('+1 day'));
@@ -153,6 +164,7 @@ class DayController extends AbstractController
             $entityManager->persist($day);
         }
         $entityManager->flush();
-        return new JsonResponse(['message' => 'Days added successfully'], 200);
+
+        return new JsonResponse(['success' => 'Days added successfully']);
     }
 }
