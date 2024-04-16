@@ -28,6 +28,9 @@ class Theme
     #[ORM\ManyToMany(targetEntity: User::class, mappedBy: 'themes')]
     private Collection $users;
 
+    #[ORM\Column(length: 255)]
+    private ?string $titleVf = null;
+
     public function __construct()
     {
         $this->users = new ArrayCollection();
@@ -98,6 +101,18 @@ class Theme
         if ($this->users->removeElement($user)) {
             $user->removeTheme($this);
         }
+
+        return $this;
+    }
+
+    public function getTitleVf(): ?string
+    {
+        return $this->titleVf;
+    }
+
+    public function setTitleVf(string $titleVf): static
+    {
+        $this->titleVf = $titleVf;
 
         return $this;
     }

@@ -182,7 +182,8 @@ class DayController extends AbstractController
 
             for ($j = 0; $j < 3; $j++) {
                 $theme = new Theme();
-                $theme->setTitle($themesData[$i + $j]['theme']);
+                $theme->setTitle($themesData[$i + $j]['title']);
+                $theme->setTitleVf($themesData[$i + $j]['title_vf']);
                 $day->addTheme($theme);
                 $entityManager->persist($theme);
             }

@@ -177,7 +177,11 @@ class UserController extends AbstractController
         // Retrieving available themes for tomorrow
         $themes = [];
         foreach ($dayTomorrow->getThemes() as $theme) {
-            $themes[] = ['id' => $theme->getId(), 'title' => $theme->getTitle()];
+            $title = $request->query->get('language', 'en') === 'fr' ? $theme->getTitleVf() : $theme->getTitle();
+            $themes[] = [
+                'id' => $theme->getId(),
+                'title' => $title
+            ];
         }
 
         // Sending available themes for tomorrow
