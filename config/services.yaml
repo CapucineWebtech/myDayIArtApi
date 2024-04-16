@@ -4,6 +4,7 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    app.supported_locales: ['en', 'fr']
 
 services:
     # default configuration for services in *this* file
@@ -22,3 +23,11 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+    App\Controller\UserController:
+        arguments:
+            $supportedLocales: '%app.supported_locales%'
+
+    App\Controller\DayController:
+        arguments:
+            $supportedLocales: '%app.supported_locales%'

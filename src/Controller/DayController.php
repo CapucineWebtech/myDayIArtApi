@@ -12,29 +12,48 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class DayController extends AbstractController
 {
+    private $supportedLocales;
 
-    private function getDayOrError(EntityManagerInterface $entityManager): Day|JsonResponse
+    public function __construct(array $supportedLocales)
     {
+        $this->supportedLocales = $supportedLocales;
+    }
+
+    private function setLanguage(TranslatorInterface $translator, Request $request): void
+    {
+        $lang = $request->query->get('language', 'en');
+        if (in_array($lang, $this->supportedLocales)) {
+            $translator->setLocale($lang);
+        }
+    }
+
+    private function getDayOrError(TranslatorInterface $translator, Request $request, EntityManagerInterface $entityManager): Day|JsonResponse
+    {
+        $this->setLanguage($translator, $request);
+
         // Check if a day exists for today
         $today = new \DateTime('now', new \DateTimeZone('UTC'));
         $dayRepository = $entityManager->getRepository(Day::class);
         $day = $dayRepository->findOneBy(['dayDate' => $today]);
         if (!$day) {
             return new JsonResponse([
-                'error' => 'No day found for today : ' . $today->format('d/m/Y'),
+                'error' => $translator->trans('error.no_day'),
             ], 404);
         }
         return $day;
     }
 
     #[Route('/today', name: 'app_today')]
-    public function today(EntityManagerInterface $entityManager): JsonResponse
+    public function today(TranslatorInterface $translator, Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
+        $this->setLanguage($translator, $request);
+
         // Retrieve the day for today
-        $day = $this->getDayOrError($entityManager);
+        $day = $this->getDayOrError($translator, $request, $entityManager);
         if ($day instanceof JsonResponse) {
             return $day;
         }
@@ -46,7 +65,7 @@ class DayController extends AbstractController
             $themes = $themeRepository->findBy(['day' => $day], ['nbVote' => 'DESC']);
             if (empty($themes)) {
                 return new JsonResponse([
-                    'error' => 'No theme for today : ' . $day->getDayDate()->format('d/m/Y'),
+                    'error' => $translator->trans('error.no_theme'),
                 ], 404);
             }
             $maxVotes = $themes[0]->getNbVote();
@@ -91,10 +110,12 @@ class DayController extends AbstractController
     }
 
     #[Route('/finished', name: 'app_finished')]
-    public function finished(EntityManagerInterface $entityManager): JsonResponse
+    public function finished(TranslatorInterface $translator, Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
+        $this->setLanguage($translator, $request);
+
         // Retrieve the day for today
-        $day = $this->getDayOrError($entityManager);
+        $day = $this->getDayOrError($translator, $request, $entityManager);
         if ($day instanceof JsonResponse) {
             return $day;
         }
@@ -105,15 +126,17 @@ class DayController extends AbstractController
         $entityManager->flush();
 
         return $this->json([
-            'success' => 'Finish added successfully',
+            'success' => $translator->trans('success.finish_added'),
         ]);
     }
 
     #[Route('/instagram', name: 'app_instagram')]
-    public function instagram(EntityManagerInterface $entityManager): JsonResponse
+    public function instagram(TranslatorInterface $translator, Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
+        $this->setLanguage($translator, $request);
+
         // Retrieve the day for today
-        $day = $this->getDayOrError($entityManager);
+        $day = $this->getDayOrError($translator, $request, $entityManager);
         if ($day instanceof JsonResponse) {
             return $day;
         }
@@ -124,19 +147,21 @@ class DayController extends AbstractController
         $entityManager->flush();
 
         return $this->json([
-            'success' => 'Instagram post added successfully',
+            'success' => $translator->trans('success.instagram_post_added'),
         ]);
     }
 
     #[Route('/api/add_days', name: 'app_add_days', methods: ['POST'])]
     #[IsGranted('ROLE_ADMIN', message: 'Only admin can access this endpoint')]
-    public function addDays(Request $request, EntityManagerInterface $entityManager): JsonResponse
+    public function addDays(TranslatorInterface $translator, Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
+        $this->setLanguage($translator, $request);
+
         // Check if themes have been provided
         $data = json_decode($request->getContent(), true);
         $themesData = $data['themes'] ?? [];
         if (empty($themesData)) {
-            throw new HttpException(400, 'No themes provided');
+            throw new HttpException(400, $translator->trans('error.no_themes_provided'));
         }
 
         // Count usable themes
@@ -165,6 +190,6 @@ class DayController extends AbstractController
         }
         $entityManager->flush();
 
-        return new JsonResponse(['success' => 'Days added successfully']);
+        return new JsonResponse(['success' => $translator->trans('success.add_days')]);
     }
 }

@@ -1,0 +1,39 @@
+error:
+  invalid_email: Invalid email address
+  password_criteria: The password must contain at least 8 characters, include an uppercase letter and a digit
+  email_used: The email is already in use
+  user_id_required: User ID is required for deletion
+  user_not_found: No user found
+  not_allowed_to_delete: You are not authorized to delete this user
+  already_voted_today: You have already voted today
+  theme_id_required: No theme specified, vote not counted
+  theme_not_found: Oops, the theme was not found
+  theme_not_for_tomorrow: This theme is not available for voting for tomorrow
+  no_themes_for_tomorrow: No themes available for tomorrow
+  email_address_required: Email address required
+  email_address_not_found: A password reset email has been sent to the specified address if it exists
+  invalid_or_expired_token: Password reset failed because the link is expired
+  should_not_be_reached: An error has occurred
+  no_day: No drawing for today, sorry...
+  no_theme: No drawing for today, sorry...
+  no_themes_provided: No themes provided
+success:
+  user_deleted: Your account has been successfully deleted
+  vote_added: Vote successfully recorded
+  password_reset_email_sent: A password reset email has been sent to the specified address if it exists
+  password_reset: Password successfully reset
+  add_days: The day(s) has/have been successfully added
+  finish_added: One more person has finished the drawing
+  instagram_post_added: One more person has shared the drawing on Instagram
+email:
+  subject:
+    password_reset: MyDayIArt Password Reset
+  body:
+    password_reset: |
+      <p>Hello,<br><br>
+      You have requested a password reset.<br>
+      To reset your password, please click on the following link:<br><br>
+      <a href="%reset_url%">Reset Link</a><br><br>
+      If you did not request a password reset, please ignore this email.<br><br>
+      Thank you for your trust.<br>
+      The MyDayIArt Team</p>

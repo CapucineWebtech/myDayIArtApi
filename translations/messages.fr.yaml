@@ -1,0 +1,39 @@
+error:
+  invalid_email: Adresse email invalide
+  password_criteria: Le mot de passe doit contenir au moins 8 caractères, inclure une majuscule et un chiffre
+  email_used: L'email est déjà utilisé
+  user_id_required: L'ID utilisateur est requis pour la suppression
+  user_not_found: Aucun utilisateur trouvé
+  not_allowed_to_delete: Vous n'êtes pas autorisé à supprimer cet utilisateur
+  already_voted_today: Vous avez déjà voté aujourd'hui
+  theme_id_required: Aucun thème spécifié, vote non pris en compte
+  theme_not_found: Oups, le thème n'a pas été trouvé
+  theme_not_for_tomorrow: Ce thème n'est pas disponible au vote pour demain
+  no_themes_for_tomorrow: Aucun thème disponible pour demain
+  email_address_required: Adresse email requise
+  email_address_not_found: Un email de réinitialisation de mot de passe a été envoyé à l'adresse spécifiée si elle existe
+  invalid_or_expired_token: La réinitialisation de mot de passe a échoué car le lien est expiré
+  should_not_be_reached: Une erreur s'est produite
+  no_day: Aucun dessin pour aujourd'hui désolé...
+  no_theme: Aucun dessin pour aujourd'hui désolé...
+  no_themes_provided: Aucun thème fourni
+success:
+  user_deleted: Votre compte a été supprimé avec succès
+  vote_added: Vote enregistré avec succès
+  password_reset_email_sent: Un email de réinitialisation de mot de passe a été envoyé à l'adresse spécifiée si elle existe
+  password_reset: Mot de passe réinitialisé avec succès
+  add_days: La/les journée(s) a/ont été ajoutée(s) avec succès
+  finish_added: Une personne de plus a terminé le dessin
+  instagram_post_added: Une personne de plus a partagé le dessin sur Instagram
+email:
+  subject:
+    password_reset: Réinitialisation de mot de passe MyDayIArt
+  body:
+    password_reset: |
+      <p>Bonjour,<br><br>
+      Vous avez demandé une réinitialisation de mot de passe.<br>
+      Pour réinitialiser votre mot de passe, cliquez sur le lien suivant:<br><br>
+      <a href="%reset_url%">Lien de réinitialisation</a><br><br>
+      Si vous n'avez pas demandé de réinitialisation de mot de passe, ignorez cet email.<br><br>
+      Merci de votre confiance.<br>
+      L'équipe de MyDayIArt</p>
