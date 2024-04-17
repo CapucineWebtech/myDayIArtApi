@@ -163,15 +163,19 @@ class UserController extends AbstractController
         $currentUser = $security->getUser();
         $today = new \DateTime('today', new \DateTimeZone('UTC'));
         $tomorrow = new \DateTime('+1 day', new \DateTimeZone('UTC'));
+        $lastVoteThemeId = null;
         if ($currentUser->getLastVoteDate() == $today) {
-            return new JsonResponse(['error' => $translator->trans('error.already_voted_today')], Response::HTTP_BAD_REQUEST);
+            $lastTheme = $currentUser->getThemes()->last();
+            if ($lastTheme) {
+                $lastVoteThemeId = $lastTheme->getId();
+            }
         }
 
         // Retrieving the theme chosen by the user and checking its existence
         $dayRepository = $entityManager->getRepository(Day::class);
         $dayTomorrow = $dayRepository->findOneBy(['dayDate' => $tomorrow]);
         if (!$dayTomorrow) {
-            return new JsonResponse(['error' => $translator->trans('error.no_themes_for_tomorrow')], Response::HTTP_NOT_FOUND);
+            return new JsonResponse(['user_id' => $currentUser->getId(), 'error' => $translator->trans('error.no_themes_for_tomorrow')], Response::HTTP_NOT_FOUND);
         }
 
         // Retrieving available themes for tomorrow
@@ -185,7 +189,11 @@ class UserController extends AbstractController
         }
 
         // Sending available themes for tomorrow
-        return new JsonResponse(['themes' => $themes]);
+        return new JsonResponse([
+            'user_id' => $currentUser->getId(),
+            'last_voted_theme_id' => $lastVoteThemeId,
+            'themes_today' => $themes
+        ]);
     }
 
     #[Route('/password/reset/request', name: 'app_password_reset_request', methods: ['POST'])]
