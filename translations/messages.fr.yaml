@@ -1,6 +1,5 @@
 error:
   invalid_email: Adresse email invalide
-  password_criteria: Le mot de passe doit contenir au moins 8 caractères, inclure une majuscule et un chiffre
   email_used: L'email est déjà utilisé
   user_id_required: L'ID utilisateur est requis pour la suppression
   user_not_found: Aucun utilisateur trouvé

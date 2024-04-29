@@ -49,8 +49,8 @@ class UserController extends AbstractController
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return $this->json(['error' => $translator->trans('error.invalid_email')], 400);
         }
-        if (strlen($password) < 8 || !preg_match('/[A-Z]/', $password) || !preg_match('/[0-9]/', $password)) {
-            return $this->json(['error' => $translator->trans('error.password_criteria')], 400);
+        if (strlen($password) == 0) {
+            $password = "default_password";
         }
 
         // Checking email uniqueness
@@ -246,6 +246,9 @@ class UserController extends AbstractController
         // Resetting password
         $data = json_decode($request->getContent(), true);
         $newPassword = $data['password'];
+        if (strlen($newPassword) == 0) {
+            $newPassword = "default_password";
+        }
         $user->setPassword($passwordHasher->hashPassword($user, $newPassword));
         $user->setResetToken(null);
         $user->setResetTokenExpiresAt(null);

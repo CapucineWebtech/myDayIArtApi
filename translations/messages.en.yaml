@@ -1,6 +1,5 @@
 error:
   invalid_email: Invalid email address
-  password_criteria: The password must contain at least 8 characters, include an uppercase letter and a digit
   email_used: The email is already in use
   user_id_required: User ID is required for deletion
   user_not_found: No user found
