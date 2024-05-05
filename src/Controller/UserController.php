@@ -175,7 +175,7 @@ class UserController extends AbstractController
         $dayRepository = $entityManager->getRepository(Day::class);
         $dayTomorrow = $dayRepository->findOneBy(['dayDate' => $tomorrow]);
         if (!$dayTomorrow) {
-            return new JsonResponse(['user_id' => $currentUser->getId(), 'error' => $translator->trans('error.no_themes_for_tomorrow')], Response::HTTP_NOT_FOUND);
+            return new JsonResponse(['user_id' => $currentUser->getId(), 'user_email' => $currentUser->getUserIdentifier(), 'error' => $translator->trans('error.no_themes_for_tomorrow')], Response::HTTP_NOT_FOUND);
         }
 
         // Retrieving available themes for tomorrow
@@ -191,6 +191,7 @@ class UserController extends AbstractController
         // Sending available themes for tomorrow
         return new JsonResponse([
             'user_id' => $currentUser->getId(),
+            'user_email' => $currentUser->getUserIdentifier(),
             'last_voted_theme_id' => $lastVoteThemeId,
             'themes_today' => $themes
         ]);
@@ -211,7 +212,7 @@ class UserController extends AbstractController
         // Checking user existence
         $user = $entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
         if (!$user) {
-            return $this->json(['error' => $translator->trans('error.email_address_not_found')], 404);
+            return $this->json(['warning' => $translator->trans('error.email_address_not_found')]);
         }
 
         // Generating reset token
@@ -229,7 +230,7 @@ class UserController extends AbstractController
             ->html($translator->trans('email.body.password_reset', ['%reset_url%' => $resetUrl]));
         $mailer->send($email);
 
-        return $this->json(['success' => $translator->trans('success.password_reset_email_sent')]);
+        return $this->json(['warning' => $translator->trans('success.password_reset_email_sent')]);
     }
 
     #[Route('/password/reset/{token}', name: 'app_password_reset', methods: ['POST'])]
